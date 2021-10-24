@@ -3,6 +3,9 @@ import "./App.css";
 
 const DisplayMessages = () => {
   const [messages, setMessages] = useState([]);
+  const [notification, setNotification] = useState("");
+  const [newText, setNewText] = useState("");
+  const [from, setFrom] = useState("");
 
   //display last messages
   useEffect(() => {
@@ -10,6 +13,14 @@ const DisplayMessages = () => {
       .then((res) => res.json())
       .then((data) => setMessages(data));
   }, []);
+
+  useEffect(() => {
+    if (notification !== "") {
+      setTimeout(() => {
+        setNotification("");
+      }, 2000);
+    }
+  }, [notification]);
 
   const clickToShowHandler = () => {
     let numPage = 2;
@@ -23,12 +34,9 @@ const DisplayMessages = () => {
     console.log(numPage);
   };
 
-  //body obcject keys for POST
-  const [newText, setNewText] = useState("");
-  const [from, setFrom] = useState("");
-
   const submitHandler = (event) => {
     event.preventDefault();
+
     fetch("http://localhost:3000/messages", {
       method: "POST",
       headers: {
@@ -39,7 +47,18 @@ const DisplayMessages = () => {
         text: newText,
         from: from,
       }),
-    });
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          setNotification("Your message was sent succesfully");
+        } else {
+          setNotification("Ups! Something went wrong");
+        }
+      })
+      .catch(() => {
+        setNotification("Ups! Something went wrong");
+      });
+
     setNewText("");
     setFrom("");
   };
@@ -74,6 +93,7 @@ const DisplayMessages = () => {
         />
         <button type="submit">Send</button>
       </form>
+      <p>{notification}</p>
       <ul>
         {messages.map((m, index) => (
           <li key={index}>
